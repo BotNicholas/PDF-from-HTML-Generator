@@ -22,6 +22,7 @@ import java.nio.file.Files;
 @Service
 public class FilesService {
     public ByteArrayResource getFile(final String name) throws IOException {
+//        Preparing Thymeleaf
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setPrefix("templates/");
         templateResolver.setSuffix(".html");
@@ -36,29 +37,26 @@ public class FilesService {
         Context context = new Context();
         context.setVariable("name", "Ben");
 
+
+//        Generating html as a tring
         String renderedHtml = templateEngine.process("hello", context);
 
-
+//        Here we're normalizing html string with help of thymeleaf
         Document document = Jsoup.parse(renderedHtml, "UTF-8");
         document.outputSettings().syntax(Document.OutputSettings.Syntax.xml);
 
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+//            Generating PDF from normalized html string and save it in Memory, not on disc as file
             ITextRenderer renderer = new ITextRenderer();
             SharedContext sharedContext = renderer.getSharedContext();
-            sharedContext.setPrint(true);
-            sharedContext.setInteractive(false);
-            renderer.setDocumentFromString(document.html());
-            renderer.layout();
-            renderer.createPDF(outputStream);
+
+            sharedContext.setPrint(true); //Prepared to be printed on paper
+            sharedContext.setInteractive(false); //It's not interactive == no JS and ect...
+            renderer.setDocumentFromString(document.html()); //Setting the html string itself
+            renderer.layout(); //Preparing the layout before generation
+            renderer.createPDF(outputStream); //Creating the pdf
 
             return new ByteArrayResource(outputStream.toByteArray());
         }
-
-//        var resource = new ClassPathResource("static/claude.png");
-//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-////        byteArrayOutputStream.write(name.getBytes());
-//        byteArrayOutputStream.write(Files.readAllBytes(resource.getFile().toPath()));
-//
-//        return byteArrayOutputStream.toByteArray();
     }
 }
